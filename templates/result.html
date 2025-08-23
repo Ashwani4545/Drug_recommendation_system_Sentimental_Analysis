@@ -1,0 +1,47 @@
+<html>
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/4.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+
+
+<body>
+
+<div>
+    <nav class="navbar navbar-expand-sm bg-dark fixed-top">
+        <a class="navbar-brand" href="#"><b>Drug Review Sentiment Analysis</b></a>
+    </nav>
+</div>
+
+<br><br><br>
+
+<div class="wrapper">
+    <div class="main-div main-div1">
+      <h1 align="center" style="background-color:black;color:white;">Drug Recommendation System based on Sentiment Analysis of Drug Reviews</h1>
+    </div><br><br><br>
+<br>
+<br>
+<br>
+
+</div>
+
+	<h1 style="color:white;font-size:20;text-align: center;"><b>Results for Comment</b></h1>
+	<div align="center" style= "background-color:white;padding:40px;">
+        	
+	{% if prediction == 1%}
+	<h2 style="color:blue;">Good Drug,Drug is Advisable at all condition </h2>
+	{% elif prediction == 0%}
+	<h2 style="color:red;">Bad Drug,Drug is not Advisable(Movie is bad)</h2>
+	{% endif %}
+
+        </div>
+	</div>
+
+</body>
+</html>

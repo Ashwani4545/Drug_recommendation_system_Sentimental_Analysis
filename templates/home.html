@@ -1,0 +1,48 @@
+<html>
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/4.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+
+
+<body>
+
+<div>  
+    <nav class="navbar navbar-expand-sm bg-dark fixed-top">
+        <a class="navbar-brand" href="#"><b>Drug Review Sentiment Analysis</b></a>
+    </nav>
+</div>
+
+<br><br><br>
+
+<div class="wrapper">
+    <div class="main-div main-div1">
+      <h1 align="center" style="background-color:black;color:white;">Drug Recommendation System based on Sentiment Analysis of Drug Reviews</h1>
+    </div><br><br><br>
+<br>
+<br>
+<br>
+
+</div>
+	
+
+	<div class="ml-container">
+
+		<center><form action="{{ url_for('predict')}}" method="POST">
+		<h1 class="text-red blink-hard">Enter Your Review Here</h1>
+	
+		<textarea name="review" rows="12" cols="120" required="required" id="ip4"></textarea>
+		<br/>
+<br><br>
+		<input type="submit" class="btn btn-primary btn-lg"  value="predict">
+	<br><br><br><br>
+	</form></center>
+</body>
+ 
+</html>
