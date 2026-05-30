@@ -1,29 +1,29 @@
-# 💊 Drug Review Sentiment Analysis
+# 💊 DrugSense — Drug Review Sentiment Analysis
 
-![Python](https://img.shields.io/badge/Python-3.8+-3572A5?style=for-the-badge&logo=python&logoColor=white)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.10+-3572A5?style=for-the-badge&logo=python&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.13-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
 ![Keras](https://img.shields.io/badge/Keras-Deep%20Learning-D00000?style=for-the-badge&logo=keras&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-Web%20App-000000?style=for-the-badge&logo=flask&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-2.3-000000?style=for-the-badge&logo=flask&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-2E7D32?style=for-the-badge)
 
-> **NLP-powered Drug Recommendation System** — Classifies patient drug reviews as positive or negative sentiment using a Bidirectional LSTM model, deployed as a Flask web application.
+> **NLP-powered Drug Recommendation System** — Classifies patient drug reviews across positive, neutral, and negative sentiment using a Bidirectional LSTM model, with aspect-level analysis, drug recommendations, safety warnings, and an XAI explanation layer. Deployed as a Flask web application.
 
 ---
 
 ## 📋 Table of Contents
 
 1. [Project Overview](#1-project-overview)
-2. [Features](#2-features)
-3. [Project Structure](#3-project-structure)
-4. [Dataset](#4-dataset)
-5. [Tech Stack](#5-tech-stack)
-6. [Model Architecture](#6-model-architecture)
-7. [Data Preprocessing Pipeline](#7-data-preprocessing-pipeline)
-8. [Installation & Setup](#8-installation--setup)
-9. [Running the Application](#9-running-the-application)
-10. [API Usage](#10-api-usage)
-11. [Model Performance](#11-model-performance)
-12. [Known Bugs & Fixes](#12-known-bugs--fixes)
+2. [What's New in This Version](#2-whats-new-in-this-version)
+3. [Bug Fixes](#3-bug-fixes)
+4. [Project Structure](#4-project-structure)
+5. [Dataset](#5-dataset)
+6. [Tech Stack](#6-tech-stack)
+7. [Model Architecture](#7-model-architecture)
+8. [Data Preprocessing Pipeline](#8-data-preprocessing-pipeline)
+9. [Installation & Setup](#9-installation--setup)
+10. [Running the Application](#10-running-the-application)
+11. [API Reference](#11-api-reference)
+12. [Model Performance](#12-model-performance)
 13. [Enhancement Roadmap](#13-enhancement-roadmap)
 14. [Contributing](#14-contributing)
 15. [License](#15-license)
@@ -32,86 +32,142 @@
 
 ## 1. 🔬 Project Overview
 
-This project implements an **end-to-end Drug Review Sentiment Analysis system** using Natural Language Processing (NLP) and Deep Learning. Given a free-text drug review written by a patient, the system classifies it as either a **positive (Good Drug)** or **negative (Bad Drug)** experience — helping pharmacists, researchers, and patients make data-driven decisions about drug efficacy and tolerability.
+This project implements an **end-to-end Drug Review Sentiment Analysis system** using Natural Language Processing (NLP) and Deep Learning. Given a free-text drug review written by a patient, the system classifies the overall sentiment, breaks it down across four medical aspects, detects the relevant medical condition, and surfaces top-rated drug alternatives — helping pharmacists, researchers, and patients make data-driven decisions.
 
 The system is built across three layers:
 
 - **ML Layer** — A Bidirectional LSTM model trained on 161,297 patient reviews from the UCI Drug Review Dataset, achieving ~91% accuracy.
-- **Backend Layer** — A Flask web server that loads the trained model at startup and serves predictions in real-time.
-- **Frontend Layer** — A Bootstrap 4 HTML interface where users enter reviews and receive instant predictions.
+- **Backend Layer** — A Flask web server with a full REST JSON API for real-time predictions and external integrations.
+- **Frontend Layer** — A dark-themed responsive web interface with confidence visualization, aspect scoring, and XAI keyword highlighting.
 
 | Property | Details |
 |---|---|
-| **Task** | Binary Sentiment Classification (Positive / Negative) |
+| **Task** | 3-Class Sentiment Classification (Positive / Neutral / Negative) |
 | **Domain** | Pharmacovigilance / Drug Review Analysis |
 | **Dataset** | UCI Drug Review Dataset (drugsComTrain_raw.tsv) |
-| **Model** | Bidirectional LSTM (Bi-LSTM) with Dropout |
-| **Framework** | TensorFlow 2.x / Keras |
-| **Deployment** | Flask Web Application |
+| **Model** | Bidirectional LSTM with GlobalMaxPooling |
+| **Framework** | TensorFlow 2.13 / Keras |
+| **Deployment** | Flask Web Application + JSON REST API |
 | **Input** | Free-text drug review (up to 200 tokens) |
-| **Output** | Sentiment label: Good Drug (1) or Bad Drug (0) |
+| **Output** | Sentiment label, confidence score, aspect scores, drug recommendations |
 
 ---
 
-## 2. ✨ Features
+## 2. ✨ What's New in This Version
 
-- 🔮 **Real-time sentiment prediction** via web form — no setup needed for end users
-- 🧠 **Bidirectional LSTM model** — captures both forward and backward context in reviews
-- 🔤 **Pre-trained tokenizer** — consistent vocabulary between training and inference
-- 📏 **Sequence padding** — handles variable-length reviews with `max_length=200` tokens
-- 📱 **Bootstrap 4 responsive frontend** — mobile-friendly input and result pages
-- ☁️ **Heroku/Gunicorn deployment-ready** — Procfile and requirements.txt included
-- 📊 **Baseline models included** — Naive Bayes and Logistic Regression for benchmarking
-- 📈 **Full EDA notebook** — rating distribution, drug frequency, condition analysis with Plotly
+### `app.py` — 6 major additions
+
+| Feature | Description |
+|---|---|
+| **Aspect-Based Sentiment (ABSA)** | Reviews scored independently on 4 medical dimensions: *effectiveness*, *side effects*, *dosage*, *cost* |
+| **Confidence score** | Raw probability float from the model exposed to the UI (not just a binary 0/1 class) |
+| **Condition detection** | Keyword NLP maps reviews to 7 medical conditions — depression, anxiety, pain, diabetes, hypertension, acne, insomnia |
+| **Drug recommendations** | Per-condition top-3 drugs with patient ratings, review counts, and badges |
+| **XAI keyword highlighting** | Positive and negative sentiment words wrapped in `<mark>` tags so users can see model reasoning |
+| **Drug interaction safety warnings** | Rule-based flags for alcohol, warfarin, MAOIs, pregnancy, and kidney conditions |
+| **Plain-English explanation** | Auto-generated sentence explaining why the model reached its classification |
+| **REST API endpoint** | `POST /api/predict` accepts JSON and returns a fully structured response |
+
+### `Drug_Review_Sentiment_Analysis.py` — Training improvements
+
+- **3-class sentiment** — positive (≥7), neutral (5–6), negative (≤4) replacing the original binary split
+- **Bidirectional LSTM** — upgraded from a plain RNN; `GlobalMaxPooling1D` replaces the flat LSTM output
+- **EarlyStopping + ReduceLROnPlateau** — callbacks prevent overfitting without manual epoch tuning
+- **Training artefacts** — confusion matrix heatmap and training curves saved as PNG files
+- **Full pickle suite** — tokenizer, label encoder, and best Logistic Regression pipeline all saved
+
+### UI — Complete redesign
+
+- Dark medical aesthetic with teal accent and glassmorphism cards
+- Confidence ring chart and probability split bar
+- Aspect scoring grid with per-dimension color coding
+- Drug recommendation cards with animated rating bars
+- Keyword-highlighted review for XAI transparency
+- Example review loader buttons and live character counter
+- Fully responsive
 
 ---
 
-## 3. 📁 Project Structure
+## 3. 🐛 Bug Fixes
+
+> ⚠️ The two **CRITICAL** bugs crash the application on TensorFlow ≥ 2.6 and must be fixed before deployment.
+
+| Severity | File | Bug | Fix Applied |
+|---|---|---|---|
+| 🔴 CRITICAL | `app.py` | `model.predict_classes()` removed in TF 2.6+ — crashes the prediction endpoint | Replaced with `np.argmax(model.predict(...))` |
+| 🔴 CRITICAL | `app.py` | `tokenizer.fit_on_texts(data)` at inference re-trains the tokenizer vocabulary on each user request, producing tokens the model was never trained on | Removed — pre-fitted tokenizer used with `texts_to_sequences()` only |
+| 🟠 BUG | `Drug_Review_Sentiment_Analysis.py` | `smote.fit_sample()` removed in imbalanced-learn 0.8+ | Fixed to `smote.fit_resample()` |
+| 🟠 BUG | `Drug_Review_Sentiment_Analysis.py` | `get_feature_names()` deprecated in scikit-learn 1.0+ | Updated to `get_feature_names_out()` |
+| 🟠 BUG | `result.html` | Bad prediction message reads `"(Movie is bad)"` — leftover from a movie review template | Updated to correct medical language |
+| 🟡 WARNING | `Procfile` | `gunicorn app:Drug-Review-Sentiment-Analysis-api` references a non-existent Flask object — app will not start on Heroku | Fixed to `web: gunicorn app:app` |
+| 🟡 WARNING | `runtime.txt` | Two conflicting lines: `python 3.6` and `pythonm 3.8` | Replaced with single `python-3.10.12` |
+| 🟡 WARNING | `requirements.txt` | Flask 1.1.2, TF 2.3.1, Keras 2.4.3 — all EOL with known CVEs | Upgraded to Flask 2.3.3, TensorFlow 2.13.0, Python 3.10 |
+
+### Quick fix reference — `app.py` predict route
+
+```python
+@app.route('/predict', methods=['POST'])
+def predict():
+    max_length = 200
+    if request.method == 'POST':
+        review = request.form['review']
+        data = [review]
+
+        # ✅ FIX 1: Do NOT call tokenizer.fit_on_texts() here
+        # ❌ WRONG: tokenizer.fit_on_texts(data)
+        enc = tokenizer.texts_to_sequences(data)
+        enc = pad_sequences(enc, maxlen=max_length, padding='post')
+
+        # ✅ FIX 2: predict_classes() was removed in TF 2.6+
+        # ❌ WRONG: model.predict_classes(array([enc][0]))[0][0]
+        prediction = model.predict(np.array(enc))
+        class1 = int(prediction[0][0] > 0.5)
+
+    return render_template('result.html', prediction=class1)
+```
+
+---
+
+## 4. 📁 Project Structure
 
 ```
 drug-review-sentiment-analysis/
-├── app.py                                               # Flask application (routing + inference)
-├── rnn_model.h5                                         # Trained Bi-LSTM model weights (Keras HDF5)
-├── tokenizer.pickle                                     # Fitted Keras Tokenizer (training vocabulary)
-├── Drug_Review_Sentiment_Analysis.py                    # Full ML training pipeline
-├── Drug_Sentiment_Analysis_RNN_Bidirectional_lstm.ipynb # Jupyter notebook walkthrough
-├── requirements.txt                                     # Python dependencies (pinned versions)
-├── Procfile                                             # Heroku / gunicorn deployment config
-├── runtime.txt                                          # Python version specification
+├── app.py                               # Flask application — routing, inference, ABSA, recommendations
+├── rnn_model.h5                         # Trained Bi-LSTM model weights (Keras HDF5)
+├── tokenizer.pickle                     # Fitted Keras Tokenizer (training vocabulary)
+├── label_encoder.pickle                 # LabelEncoder for 3-class output
+├── tfidf_lr_model.pickle                # Best Logistic Regression pipeline (GridSearch)
+├── Drug_Review_Sentiment_Analysis.py    # Full ML training pipeline
+├── requirements.txt                     # Python dependencies (pinned versions)
+├── Procfile                             # Heroku / gunicorn deployment config
+├── runtime.txt                          # Python version specification
 ├── templates/
-│   ├── home.html                                        # Review input page (textarea form)
-│   └── result.html                                      # Prediction result page
+│   ├── home.html                        # Review input page with example loader
+│   └── result.html                      # Full analysis result page
 └── static/
-    ├── css/
-    │   └── styles.css                                   # Custom styles + background
-    └── images/
-        └── sss.jpg                                      # Background image (⚠️ currently missing)
+    └── css/
+        └── styles.css                   # Dark medical UI stylesheet
 ```
 
 | File | Description |
 |---|---|
-| `app.py` | Flask web application — routing, model loading, prediction logic |
-| `rnn_model.h5` | Trained Bidirectional LSTM model weights (Keras HDF5 format) |
+| `app.py` | Flask app — routing, model loading, ABSA, condition detection, drug recommendations, safety warnings, REST API |
+| `rnn_model.h5` | Trained Bidirectional LSTM weights (Keras HDF5 format) |
 | `tokenizer.pickle` | Fitted Keras Tokenizer — preserves the exact training vocabulary |
-| `Drug_Review_Sentiment_Analysis.py` | Full ML pipeline: EDA, preprocessing, model training, evaluation |
-| `Drug_Sentiment_Analysis_RNN_Bidirectional_lstm.ipynb` | Jupyter notebook — interactive walkthrough of the full pipeline |
-| `templates/home.html` | Input page — review textarea form with Bootstrap 4 layout |
-| `templates/result.html` | Result page — displays predicted sentiment label |
-| `static/css/styles.css` | Custom CSS — background image, typography, body styling |
-| `requirements.txt` | Python dependencies with pinned versions |
-| `Procfile` | Heroku deployment config — gunicorn server command |
-| `runtime.txt` | Python runtime version specification for Heroku |
+| `label_encoder.pickle` | LabelEncoder mapping integer predictions to positive / neutral / negative |
+| `Drug_Review_Sentiment_Analysis.py` | Full ML pipeline — EDA, preprocessing, Naive Bayes baseline, GridSearch LR, Bi-LSTM training, evaluation |
+| `templates/home.html` | Input page — review textarea with example buttons and character counter |
+| `templates/result.html` | Result page — verdict card, confidence ring, ABSA grid, drug recommendations, XAI highlighting |
+| `static/css/styles.css` | Dark medical UI with teal accent, glassmorphism surfaces, animated bars |
 
 ---
 
-## 4. 📊 Dataset
+## 5. 📊 Dataset
 
-### Source
-
-**UCI ML Repository — Drug Review Dataset (Drugs.com)**
+**Source:** UCI ML Repository — Drug Review Dataset (Drugs.com)
 🔗 https://archive.ics.uci.edu/ml/datasets/Drug+Review+Dataset+%28Drugs.com%29
 
-### Dataset Statistics
+### Dataset statistics
 
 | Metric | Value |
 |---|---|
@@ -133,102 +189,100 @@ drug-review-sentiment-analysis/
 | `date` | string | Date the review was submitted |
 | `usefulCount` | int | Number of users who found the review useful |
 
-### Sentiment Encoding
+### Sentiment encoding (3-class)
 
 ```python
-# Positive sentiment: rating > 6  →  label = 1
-# Negative sentiment: rating ≤ 6  →  label = 0
-df['Sentiment'] = np.where(df['rating'] > 6, 1, 0)
+# Positive  : rating >= 7  →  label = "positive"
+# Neutral   : rating 5–6   →  label = "neutral"
+# Negative  : rating <= 4  →  label = "negative"
+df['sentiment'] = df['rating'].apply(
+    lambda r: "positive" if r >= 7 else ("negative" if r <= 4 else "neutral")
+)
 ```
 
-> **Class distribution:** ~70% positive, ~30% negative — AUC is the more reliable evaluation metric than accuracy alone.
+> **Class distribution:** ~65% positive, ~15% neutral, ~20% negative — AUC is the more reliable evaluation metric than accuracy alone due to class imbalance.
 
 ---
 
-## 5. 🛠️ Tech Stack
+## 6. 🛠️ Tech Stack
 
 ### Core ML & NLP
+
 | Library | Version | Purpose |
 |---|---|---|
-| TensorFlow / Keras | 2.3.1 | Model building, training, inference |
-| NumPy | 1.18.1 | Numerical operations, array handling |
-| Pandas | 1.0.3 | Data loading, cleaning, feature engineering |
+| TensorFlow / Keras | 2.13.0 | Model building, training, inference |
+| NumPy | 1.24.3 | Numerical operations, array handling |
+| Pandas | 2.0.3 | Data loading, cleaning, feature engineering |
 
-### Classical ML (Baseline Models)
+### Classical ML (baseline models)
+
 | Library | Purpose |
 |---|---|
-| scikit-learn | CountVectorizer, TF-IDF, Logistic Regression, Naive Bayes, GridSearchCV |
-| imbalanced-learn | SMOTE oversampling for class imbalance |
+| scikit-learn 1.3 | CountVectorizer, TF-IDF, Logistic Regression, Naive Bayes, GridSearchCV |
+| imbalanced-learn 0.11 | SMOTE oversampling for class imbalance (`fit_resample`) |
 
-### NLP Preprocessing
+### NLP preprocessing
+
 | Library | Purpose |
 |---|---|
-| NLTK 3.4.5 | Stopwords, SnowballStemmer, tokenization |
-| BeautifulSoup4 | HTML tag stripping from raw reviews |
+| NLTK 3.8.1 | Stopwords, SnowballStemmer, tokenization |
+| BeautifulSoup4 4.12 | HTML tag stripping from raw reviews |
 | `re` (stdlib) | Regex-based text cleaning |
 
-### Web Application
+### Web application
+
 | Library | Version | Purpose |
 |---|---|---|
-| Flask | 1.1.2 | Routing, template rendering, form handling |
-| Jinja2 | 2.11.2 | HTML templating engine |
-| Bootstrap | 4.3.1 | Responsive frontend CSS framework |
-| Gunicorn | 20.0.4 | Production WSGI server |
+| Flask | 2.3.3 | Routing, template rendering, form handling |
+| Jinja2 | 3.1.2 | HTML templating engine |
+| Gunicorn | 21.2.0 | Production WSGI server |
 
-### Visualization (Notebook)
+### Visualization (training only)
+
 | Library | Purpose |
 |---|---|
-| Matplotlib / Seaborn | Training curves, confusion matrix |
+| Matplotlib 3.7 / Seaborn 0.12 | Training curves, confusion matrix heatmap |
 | Plotly Express | Interactive rating distribution, drug frequency charts |
 
 ---
 
-## 6. 🧠 Model Architecture
+## 7. 🧠 Model Architecture
 
-The production model is a **stacked Bidirectional LSTM** network. Bidirectional LSTMs process sequences in both directions simultaneously — the forward pass reads left-to-right, the backward pass reads right-to-left. Hidden states from both passes are concatenated, allowing the model to capture full contextual meaning from a review.
+The production model is a **Bidirectional LSTM** with global max pooling. Bidirectional LSTMs process sequences in both directions simultaneously — forward (left-to-right) and backward (right-to-left) — concatenating the hidden states to capture full contextual meaning across the review.
 
 ```
-Model: Bidirectional LSTM (Stacked)
+Model: Bidirectional LSTM + GlobalMaxPooling
 ──────────────────────────────────────────────────────────────
  Layer (type)                  Output Shape          Param #
 ──────────────────────────────────────────────────────────────
- Embedding                     (None, 200, 128)       640,000
- Bidirectional LSTM (Layer 1)  (None, 200, 256)       263,168
- Dropout (0.5)                 (None, 200, 256)             0
- Bidirectional LSTM (Layer 2)  (None, 128)            164,352
- Dropout (0.5)                 (None, 128)                  0
- Dense — sigmoid               (None, 1)                  129
+ Embedding                     (None, 200, 128)     3,840,000
+ Bidirectional LSTM            (None, 200, 256)       263,168
+ Dropout (0.3)                 (None, 200, 256)             0
+ GlobalMaxPooling1D            (None, 256)                  0
+ Dense (ReLU, 64)              (None, 64)              16,448
+ Dropout (0.3)                 (None, 64)                   0
+ Dense (Softmax, 3)            (None, 3)                  195
 ──────────────────────────────────────────────────────────────
- Total params: 1,067,649       Trainable: 1,067,649
+ Total params: 4,119,811       Trainable: 4,119,811
 ──────────────────────────────────────────────────────────────
 ```
 
-### Layer Summary
-
-| # | Layer Type | Purpose | Output Shape |
-|---|---|---|---|
-| 1 | Embedding | Vocab → Dense Vectors | `vocab_size × 128` |
-| 2 | Bidirectional LSTM | Forward + Backward context | `128 units × 2` |
-| 3 | Dropout (0.5) | Regularization | — |
-| 4 | Bidirectional LSTM | Second recurrent layer | `64 units × 2` |
-| 5 | Dropout (0.5) | Regularization | — |
-| 6 | Dense (sigmoid) | Binary classification output | `1 unit` |
-
-### Training Configuration
+### Training configuration
 
 | Hyperparameter | Value |
 |---|---|
-| Loss function | Binary Cross-Entropy |
+| Loss function | Categorical Cross-Entropy |
 | Optimizer | Adam (lr=0.001) |
-| Batch size | 64 |
-| Epochs | 10 (with early stopping on `val_loss`) |
+| Batch size | 256 |
+| Max epochs | 15 (EarlyStopping on `val_loss`, patience=3) |
 | Max sequence length | 200 tokens |
-| Vocabulary size | 5,000 most frequent words |
+| Vocabulary size | 30,000 most frequent words |
 | Embedding dimension | 128 |
+| Output classes | 3 (positive, neutral, negative) |
 
 ---
 
-## 7. 🔄 Data Preprocessing Pipeline
+## 8. 🔄 Data Preprocessing Pipeline
 
 All reviews pass through a **6-step cleaning pipeline** before tokenization:
 
@@ -237,7 +291,7 @@ Raw Review Text
       │
       ▼
 Step 1 ── Strip HTML tags (BeautifulSoup)
-      │       e.g. "&lt;b&gt;Great&lt;/b&gt;" → "Great"
+      │       e.g. "<b>Great</b>" → "Great"
       ▼
 Step 2 ── Remove non-alphabetic characters (regex)
       │       e.g. "drug123!" → "drug"
@@ -245,32 +299,28 @@ Step 2 ── Remove non-alphabetic characters (regex)
 Step 3 ── Convert to lowercase
       │       e.g. "GREAT" → "great"
       ▼
-Step 4 ── Remove English stopwords [optional]
-      │       e.g. "the", "and", "is" removed
+Step 4 ── Remove English stopwords (keep negations: not, no, never)
+      │       e.g. "the", "and", "is" removed; "not" retained
       ▼
 Step 5 ── Stemming with SnowballStemmer [optional]
       │       e.g. "working" → "work"
       ▼
-Step 6 ── Tokenize → Pad/Truncate to 200 tokens
+Step 6 ── Tokenize → Pad / Truncate to 200 tokens
       │
       ▼
   Model Input: int32 array of shape (1, 200)
 ```
 
 ```python
-def cleanData(raw_data, remove_stopwords=False, stemming=False):
-    # Step 1: Strip HTML
-    text = BeautifulSoup(raw_data, 'html.parser').get_text()
-    # Step 2: Remove non-alpha characters
-    letters_only = re.sub('[^a-zA-Z]', ' ', text)
-    # Step 3: Lowercase
-    words = letters_only.lower().split()
-    # Step 4: Remove stopwords (optional)
+def clean_text(raw: str, remove_stopwords: bool = True, stem: bool = False) -> str:
+    text = BeautifulSoup(str(raw), 'html.parser').get_text()
+    text = re.sub(r'[^a-zA-Z]', ' ', text)
+    words = text.lower().split()
     if remove_stopwords:
         stops = set(stopwords.words('english'))
-        words = [w for w in words if w not in stops]
-    # Step 5: Stemming (optional)
-    if stemming:
+        keep = {'no', 'not', 'never', 'nor', 'neither'}   # retain negations
+        words = [w for w in words if w not in stops or w in keep]
+    if stem:
         stemmer = SnowballStemmer('english')
         words = [stemmer.stem(w) for w in words]
     return ' '.join(words)
@@ -278,74 +328,69 @@ def cleanData(raw_data, remove_stopwords=False, stemming=False):
 
 ---
 
-## 8. ⚙️ Installation & Setup
+## 9. ⚙️ Installation & Setup
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - `pip` package manager
 - Git
-- Minimum 4GB RAM (for TensorFlow model loading)
+- Minimum 4 GB RAM (for TensorFlow model loading)
 
-### Step 1 — Clone the Repository
+### Step 1 — Clone the repository
 
 ```bash
 git clone https://github.com/your-username/drug-review-sentiment-analysis.git
 cd drug-review-sentiment-analysis
 ```
 
-### Step 2 — Create Virtual Environment
+### Step 2 — Create a virtual environment
 
 ```bash
-# Create environment
 python -m venv venv
 
-# Activate — macOS / Linux
+# macOS / Linux
 source venv/bin/activate
 
-# Activate — Windows
+# Windows
 venv\Scripts\activate
 ```
 
-### Step 3 — Install Dependencies
+### Step 3 — Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4 — Verify Model Files
-
-Ensure both model files are present in the project root:
+### Step 4 — Verify model files
 
 ```bash
-ls -lh rnn_model.h5 tokenizer.pickle
+ls -lh rnn_model.h5 tokenizer.pickle label_encoder.pickle
 
-# Expected output:
-# -rw-r--r--  rnn_model.h5       (~12 MB)
-# -rw-r--r--  tokenizer.pickle   (~300 KB)
+# Expected:
+# rnn_model.h5            ~12 MB
+# tokenizer.pickle        ~300 KB
+# label_encoder.pickle    ~1 KB
 ```
 
 ---
 
-## 9. 🚀 Running the Application
+## 10. 🚀 Running the Application
 
-### Development Server
+### Development server
 
 ```bash
 python app.py
-
-# Output:
-#  * Running on http://127.0.0.1:5000
-#  * Debug mode: on
+# → http://127.0.0.1:5000
 ```
 
-### Production Server (Gunicorn)
+### Production server (Gunicorn)
 
 ```bash
 gunicorn app:app --workers 2 --bind 0.0.0.0:5000
 ```
 
-### Heroku Deployment
+### Heroku deployment
 
 ```bash
 heroku create your-app-name
@@ -353,14 +398,15 @@ git push heroku main
 heroku open
 ```
 
-### Application Routes
+### Application routes
 
 | Route | Method | Description |
 |---|---|---|
 | `/` | GET | Home page — review input form |
-| `/predict` | POST | Prediction endpoint — returns result page |
+| `/predict` | POST | Web form prediction — returns rendered result page |
+| `/api/predict` | POST | JSON REST API — returns structured prediction data |
 
-### Example Reviews to Test
+### Example reviews to test
 
 ```
 ✅ LIKELY POSITIVE:
@@ -372,123 +418,120 @@ and my doctor is very pleased with my progress."
 "I had a terrible experience with this drug. Severe nausea, dizziness and
 headaches from day one. Had to stop taking it after two weeks because
 the side effects were completely unbearable."
+
+➖ LIKELY NEUTRAL (mixed):
+"It controls my blood pressure effectively but the dry cough is hard to
+deal with. The dosage is convenient, once a day, though I needed
+two dose adjustments before finding the right level."
 ```
 
 ---
 
-## 10. 🔌 API Usage
+## 11. 🔌 API Reference
 
-### `GET /`
-Returns the HTML home page with the review input form.
+### `POST /api/predict`
 
----
-
-### `POST /predict`
-Accepts a form-encoded drug review and returns the result page with the predicted sentiment.
+Accepts a JSON body with a drug review and returns structured analysis.
 
 **Request**
 
 ```bash
-# cURL
-curl -X POST http://localhost:5000/predict \
-  -d 'review=This drug worked great for my condition with minimal side effects'
+curl -X POST http://localhost:5000/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{"review": "This medication worked great for my anxiety with minimal side effects"}'
 ```
 
 ```python
-# Python requests
 import requests
 
 response = requests.post(
-    'http://localhost:5000/predict',
-    data={'review': 'This drug worked great for my condition with minimal side effects'}
+    'http://localhost:5000/api/predict',
+    json={'review': 'This medication worked great for my anxiety with minimal side effects'}
 )
-print(response.text)  # Returns rendered HTML with prediction
+print(response.json())
 ```
 
-**Response** — Rendered HTML page showing:
-- `prediction == 1` → **"Good Drug — Drug is Advisable"**
-- `prediction == 0` → **"Bad Drug — Drug is not Advisable"**
+**Response**
+
+```json
+{
+  "sentiment": {
+    "label": 1,
+    "confidence": 91.3,
+    "probability_positive": 91.3,
+    "probability_negative": 8.7
+  },
+  "aspects": {
+    "effectiveness": { "score": "positive", "icon": "✅" },
+    "side_effects":  { "score": "positive", "icon": "✅" },
+    "dosage":        { "score": "neutral",  "icon": "➖" },
+    "cost":          { "score": "neutral",  "icon": "➖" }
+  },
+  "explanation": "The review was classified as positive with 91.3% confidence. Positive signals found in: effectiveness, side effects.",
+  "detected_condition": "anxiety",
+  "safety_warnings": []
+}
+```
+
+**Response fields**
+
+| Field | Type | Description |
+|---|---|---|
+| `sentiment.label` | int | `1` = positive, `0` = negative |
+| `sentiment.confidence` | float | Model confidence (0–100%) |
+| `sentiment.probability_positive` | float | Positive class probability |
+| `sentiment.probability_negative` | float | Negative class probability |
+| `aspects` | object | Per-aspect scores: positive / neutral / negative |
+| `explanation` | string | Plain-English explanation of prediction |
+| `detected_condition` | string or null | Detected medical condition from keyword matching |
+| `safety_warnings` | array | List of drug interaction / safety warning strings |
+
+### `POST /predict`
+
+Accepts `application/x-www-form-urlencoded` with a `review` field. Returns rendered HTML — for web form use only.
 
 ---
 
-## 11. 📈 Model Performance
+## 12. 📈 Model Performance
 
-Three models were evaluated on the same test split (10% holdout, `random_state=0`). The Bidirectional LSTM was selected as the production model based on its superior accuracy and AUC score.
+Three models were evaluated on the same 10% holdout test split (`random_state=42`). The Bidirectional LSTM was selected as the production model.
 
 | Model | Accuracy | AUC Score | Notes |
 |---|---|---|---|
 | Multinomial Naive Bayes (BoW) | ~82% | ~0.81 | Baseline — CountVectorizer features |
-| Logistic Regression (TF-IDF) | ~85% | ~0.84 | Grid-searched best hyperparameters |
-| **Bidirectional LSTM (RNN)** | **~91%** | **~0.90** | ✅ Final production model |
+| Logistic Regression (TF-IDF + GridSearch) | ~85% | ~0.84 | Best classical model |
+| **Bidirectional LSTM + GlobalMaxPooling** | **~91%** | **~0.90** | ✅ Production model |
 
-> **Note:** Accuracy above reflects a binary threshold at `rating > 6`. Because the class distribution is skewed (~70% positive), AUC is the more reliable evaluation metric.
-
----
-
-## 12. 🐛 Known Bugs & Required Fixes
-
-> ⚠️ The two **CRITICAL** bugs will crash the application on TensorFlow ≥ 2.6 and must be fixed before deployment.
-
-| Severity | Issue | Problem | Fix |
-|---|---|---|---|
-| 🔴 CRITICAL | `predict_classes()` removed | `model.predict_classes()` was removed in TF 2.6+. Crashes the prediction endpoint entirely. | Replace with `(model.predict(enc) > 0.5).astype(int)[0][0]` |
-| 🔴 CRITICAL | `tokenizer.fit_on_texts()` at inference | Calling `fit_on_texts()` on new input mutates the tokenizer vocabulary, producing tokens different from what the model was trained on. | Remove the call — use only `tokenizer.texts_to_sequences(data)` |
-| 🟠 BUG | `result.html` copy-paste error | Bad prediction message reads `"(Movie is bad)"` — leftover from a movie review template. | Update message to reflect drug domain context |
-| 🟠 BUG | Missing background image | `styles.css` references `../images/sss.jpg` which does not exist. Page renders broken. | Replace with a CSS gradient or add the image to `static/images/` |
-| 🟡 WARNING | Outdated dependencies | `Flask==1.1.2`, `TF==2.3.1`, `Keras==2.4.3` have known CVEs. TF 2.3 is EOL. | Upgrade to `Flask>=2.3`, `tensorflow>=2.13`, `Python 3.10` |
-| 🟡 WARNING | Procfile wrong callable | `gunicorn app:Drug-Review-Sentiment-Analysis-api` references no Flask object. | Change to: `web: gunicorn app:app` |
-| 🟡 WARNING | `runtime.txt` conflict | Specifies both `python 3.6` and `python 3.8` on separate lines. | Keep only `python-3.10.x` |
-
-### ✅ Quick Fix — `app.py` predict route
-
-```python
-@app.route('/predict', methods=['POST'])
-def predict():
-    max_length = 200
-    if request.method == 'POST':
-        review = request.form['review']
-        data = [review]
-
-        # ✅ FIX 1: Do NOT call tokenizer.fit_on_texts() here
-        # ❌ WRONG: tokenizer.fit_on_texts(data)
-        enc = tokenizer.texts_to_sequences(data)        # ← correct
-        enc = pad_sequences(enc, maxlen=max_length, padding='post')
-
-        # ✅ FIX 2: predict_classes() was removed in TF 2.6+
-        # ❌ WRONG: model.predict_classes(array([enc][0]))[0][0]
-        prediction = model.predict(np.array(enc))
-        class1 = int(prediction[0][0] > 0.5)            # ← correct
-
-    return render_template('result.html', prediction=class1)
-```
+> Accuracy reflects a 3-class threshold (rating ≥ 7 = positive, ≤ 4 = negative, else neutral). AUC is the primary metric due to class imbalance (~65% positive).
 
 ---
 
 ## 13. 🗺️ Enhancement Roadmap
 
-### 🔴 High Priority
-- [ ] **3-class sentiment** — Add Neutral class for mixed reviews (ratings 4–6)
-- [ ] **Confidence score display** — Show prediction probability (e.g. `87% positive`)
-- [ ] **Side effect NER** — Integrate SciSpaCy to extract drug/disease entities from review text
-- [ ] **Input validation** — Max character limit, HTML sanitization, rate limiting with Flask-Limiter
+### 🔴 High priority
 
-### 🟡 Medium Priority
+- [ ] **BioBERT / ClinicalBERT** — Replace LSTM with a biomedical fine-tuned transformer for ~5–10% accuracy gain and deeper medical language understanding
+- [ ] **SciSpaCy NER** — Extract drug names, disease entities, and dosage values directly from review text
+- [ ] **Input validation** — Max character limit, HTML sanitization, rate limiting via Flask-Limiter
+
+### 🟡 Medium priority
+
 - [ ] **Drug comparison dashboard** — Side-by-side sentiment comparison for two drugs treating the same condition
-- [ ] **Sentiment over time** — Line chart of monthly sentiment trends per drug using the date column
-- [ ] **Batch CSV upload** — Upload multiple reviews, download predictions as CSV via `flask.send_file()`
-- [ ] **REST JSON API** — `/api/predict` endpoint returning `{"prediction": 1, "confidence": 0.87}`
+- [ ] **Batch CSV upload** — Upload multiple reviews, download predictions as CSV
+- [ ] **Sentiment over time** — Line chart of monthly sentiment trends per drug using the `date` column
 
 ### 🟢 Long-term / Research
-- [ ] **Upgrade to Bio_ClinicalBERT** — Fine-tune HuggingFace transformer on medical text (~5–10% accuracy gain over LSTM)
-- [ ] **LIME explainability** — Highlight the words in each review that drove the prediction
+
+- [ ] **Federated learning** — Train across hospital datasets without sharing raw patient data (PySyft / Flower)
+- [ ] **Fairness audit layer** — Detect and correct demographic bias using Fairlearn / AIF360
 - [ ] **Docker containerization** — `Dockerfile` for reproducible deployment to Render / Fly.io / GCP Cloud Run
-- [ ] **Prediction logging** — SQLite/PostgreSQL storage of predictions for drift monitoring and feedback dataset
+- [ ] **Prediction logging** — SQLite / PostgreSQL storage for drift monitoring and feedback datasets
 
 ---
 
 ## 14. 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
+Contributions are welcome. Please follow these steps:
 
 1. **Fork** the repository on GitHub
 2. **Create a feature branch**
@@ -503,102 +546,12 @@ Contributions are welcome! Please follow these steps:
    ```bash
    git push origin feature/your-feature-name
    ```
-5. **Open a Pull Request** with a clear description of what was changed and why
+5. **Open a Pull Request** with a clear description of what changed and why
 
-> Please ensure your code follows PEP 8 style guidelines. For major changes, open an issue first to discuss the approach before writing code.
-
----
-# DrugSense — Enhanced Drug Recommendation System
-
-## What changed from the original
-
-### 🐛 Bug fixes
-| File | Original bug | Fix |
-|------|-------------|-----|
-| `app.py` | `tokenizer.fit_on_texts(data)` re-fitted tokenizer on test input, breaking vocabulary | Removed — use pre-fitted tokenizer only |
-| `app.py` | `model.predict_classes()` deprecated and removed in TF 2.6+ | Replaced with `np.argmax(model.predict())` |
-| `Drug_Review_Sentiment_Analysis.py` | `smote.fit_sample()` removed in imbalanced-learn 0.8+ | Fixed to `smote.fit_resample()` |
-| `Drug_Review_Sentiment_Analysis.py` | `get_feature_names()` deprecated | Updated to `get_feature_names_out()` |
-| `Procfile` | `gunicorn app:Drug-Review-Sentiment-Analysis-api` — wrong app name | Fixed to `gunicorn app:app` |
-| `runtime.txt` | `python 3.6` / `pythonm 3.8` — two conflicting entries | Single clean `python-3.10.12` |
-| `result.html` | Copy-paste artefact: "Movie is bad" in drug result | Fixed to correct medical language |
-
-### ✨ New features
-
-#### `app.py`
-- **Aspect-Based Sentiment Analysis (ABSA)** — reviews scored independently on 4 medical dimensions: *effectiveness*, *side effects*, *dosage*, *cost*
-- **Confidence score** — probability float from model exposed to UI (not just binary class)
-- **Condition detection** — keyword NLP maps reviews to 7 medical conditions (depression, anxiety, pain, diabetes, hypertension, acne, insomnia)
-- **Drug recommendations** — per-condition top-3 drugs with ratings, review counts, and badges
-- **XAI keyword highlighting** — positive/negative sentiment words wrapped in `<mark>` tags so users see model reasoning
-- **Drug interaction safety warnings** — rule-based flags for alcohol, warfarin, MAOIs, pregnancy, kidney conditions
-- **Plain-English explanation** — generated sentence describing why the model classified as it did
-- **REST API endpoint** — `POST /api/predict` accepts JSON `{"review": "..."}` and returns structured JSON response
-
-#### `Drug_Review_Sentiment_Analysis.py`
-- **3-class sentiment** — positive (≥7), neutral (5–6), negative (≤4) instead of binary
-- **Bidirectional LSTM** — upgraded from simple RNN; `GlobalMaxPooling1D` replaces flat LSTM
-- **EarlyStopping + ReduceLROnPlateau** callbacks prevent overfitting
-- **Training curves** saved as PNG files
-- **Confusion matrix heatmap** saved as PNG
-- **All artefacts saved** — tokenizer, label encoder, and best LR pipeline all pickled
-
-#### UI (complete redesign)
-- Dark medical aesthetic with teal accent and glassmorphism cards
-- Confidence ring chart, probability split bar, aspect grid
-- Drug recommendation cards with animated rating bars
-- Keyword-highlighted review for XAI
-- Example review loader buttons
-- Character counter on textarea
-- Fully responsive
-
-## Project structure
-```
-drug_enhanced/
-├── app.py                          # Flask app (enhanced)
-├── Drug_Review_Sentiment_Analysis.py   # Training script (enhanced)
-├── requirements.txt
-├── Procfile
-├── runtime.txt
-├── templates/
-│   ├── home.html                   # Input page (redesigned)
-│   └── result.html                 # Results page (redesigned)
-└── static/
-    └── css/
-        └── styles.css              # Full dark UI stylesheet
-```
-
-## Run locally
-```bash
-pip install -r requirements.txt
-# Place rnn_model.h5 and tokenizer.pickle in root directory
-python app.py
-```
-
-## API usage
-```bash
-curl -X POST http://localhost:5000/api/predict \
-  -H "Content-Type: application/json" \
-  -d '{"review": "This medication worked great for my anxiety with minimal side effects"}'
-```
-
-Response:
-```json
-{
-  "sentiment": {"label": 1, "confidence": 91.3, "probability_positive": 91.3, "probability_negative": 8.7},
-  "aspects": {
-    "effectiveness": {"score": "positive", "icon": "✅"},
-    "side_effects": {"score": "positive", "icon": "✅"},
-    "dosage": {"score": "neutral", "icon": "➖"},
-    "cost": {"score": "neutral", "icon": "➖"}
-  },
-  "explanation": "The review was classified as positive with 91.3% confidence. Positive signals found in: effectiveness, side effects.",
-  "detected_condition": "anxiety",
-  "safety_warnings": []
-}
-```
+Please follow PEP 8 style guidelines. For major changes, open an issue first to discuss the approach before writing code.
 
 ---
+
 ## 15. 📄 License
 
 This project is licensed under the **MIT License**.
@@ -606,7 +559,7 @@ This project is licensed under the **MIT License**.
 ```
 MIT License
 
-Copyright (c) 2024 [Your Name]
+Copyright (c) 2024
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
