@@ -1,48 +1,209 @@
-<html>
-<head>
-<meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/4.4.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DrugSense — AI Drug Review Analysis</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Background blobs -->
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
 
-
-
-<body>
-
-<div>  
-    <nav class="navbar navbar-expand-sm bg-dark fixed-top">
-        <a class="navbar-brand" href="#"><b>Drug Review Sentiment Analysis</b></a>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-brand">
+        <span class="brand-dot"></span>
+        DrugSense
+      </div>
+      <div class="nav-pills">
+        <span class="nav-pill active">Analyze</span>
+        <span class="nav-pill">About</span>
+      </div>
     </nav>
-</div>
 
-<br><br><br>
+    <!-- Hero -->
+    <main class="hero">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        AI-Powered · Aspect Analysis · Drug Recommendation
+      </div>
+      <h1 class="hero-title">
+        Understand every<br />
+        <em>drug review</em> deeply
+      </h1>
+      <p class="hero-sub">
+        Paste any patient drug review. Our system classifies overall sentiment,
+        breaks it into aspects — effectiveness, side effects, dosage &amp; cost
+        — and suggests top-rated alternatives based on your condition.
+      </p>
 
-<div class="wrapper">
-    <div class="main-div main-div1">
-      <h1 align="center" style="background-color:black;color:white;">Drug Recommendation System based on Sentiment Analysis of Drug Reviews</h1>
-    </div><br><br><br>
-<br>
-<br>
-<br>
+      <!-- Feature chips -->
+      <div class="chips">
+        <div class="chip">
+          <span class="chip-icon">🧬</span> RNN Sentiment Model
+        </div>
+        <div class="chip">
+          <span class="chip-icon">🔬</span> Aspect-Based Analysis
+        </div>
+        <div class="chip">
+          <span class="chip-icon">💊</span> Drug Recommendations
+        </div>
+        <div class="chip">
+          <span class="chip-icon">⚠️</span> Safety Warnings
+        </div>
+        <div class="chip">
+          <span class="chip-icon">🔍</span> XAI Keyword Highlighting
+        </div>
+      </div>
+    </main>
 
-</div>
-	
+    <!-- Form card -->
+    <section class="form-section">
+      <div class="form-card">
+        <div class="form-card-header">
+          <span class="form-tag">Review Input</span>
+          <span class="form-hint">English only · Min 10 words recommended</span>
+        </div>
 
-	<div class="ml-container">
+        {% if error %}
+        <div class="alert-error">{{ error }}</div>
+        {% endif %}
 
-		<center><form action="{{ url_for('predict')}}" method="POST">
-		<h1 class="text-red blink-hard">Enter Your Review Here</h1>
-	
-		<textarea name="review" rows="12" cols="120" required="required" id="ip4"></textarea>
-		<br/>
-<br><br>
-		<input type="submit" class="btn btn-primary btn-lg"  value="predict">
-	<br><br><br><br>
-	</form></center>
-</body>
- 
+        <form action="{{ url_for('predict') }}" method="POST" id="mainForm">
+          <div class="textarea-wrap">
+            <textarea
+              name="review"
+              id="reviewInput"
+              placeholder="e.g., I've been taking this medication for 3 months for my anxiety. It has been extremely effective in reducing my panic attacks, though I do experience some dry mouth and mild drowsiness in the morning…"
+              required
+              minlength="20"
+              oninput="updateCount(this)"
+            ></textarea>
+            <div class="textarea-footer">
+              <span class="char-count" id="charCount">0 characters</span>
+              <span class="textarea-tip"
+                >Longer reviews produce better aspect analysis</span
+              >
+            </div>
+          </div>
+
+          <!-- Example reviews -->
+          <div class="examples">
+            <span class="examples-label">Try an example:</span>
+            <button type="button" class="ex-btn" onclick="loadExample(0)">
+              Positive review
+            </button>
+            <button type="button" class="ex-btn" onclick="loadExample(1)">
+              Negative review
+            </button>
+            <button type="button" class="ex-btn" onclick="loadExample(2)">
+              Mixed review
+            </button>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span class="btn-text">Analyze Review</span>
+            <span class="btn-icon">→</span>
+            <div class="btn-loader" id="btnLoader"></div>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="how-section">
+      <h2 class="how-title">How it works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <h3>Sentiment classification</h3>
+            <p>
+              An RNN model trained on 200,000+ drug reviews predicts overall
+              positive or negative sentiment with a confidence score.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <h3>Aspect-based analysis</h3>
+            <p>
+              We decompose the review into four medical aspects — effectiveness,
+              side effects, dosage convenience, and cost — each scored
+              independently.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <h3>Condition detection &amp; recommendation</h3>
+            <p>
+              Natural language keywords map your review to a medical condition
+              and surface top-rated, high-review-volume drug alternatives.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-body">
+            <h3>Safety &amp; XAI</h3>
+            <p>
+              Key sentiment words are highlighted so you can see exactly why the
+              model reached its conclusion. Drug interaction flags surface
+              critical safety warnings.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>
+        DrugSense · For informational purposes only. Always consult a healthcare
+        professional.
+      </p>
+    </footer>
+
+    <script>
+      const examples = [
+        "I have been taking Lexapro for depression for about 6 months now and it has been absolutely life-changing. My mood has improved dramatically, I no longer feel that constant weight of sadness. The side effects were minimal — just a bit of nausea the first two weeks. The dosage is simple, once a day, and it's affordable with my insurance. I highly recommend it to anyone struggling with depression.",
+        "This medication was a complete nightmare for me. It did absolutely nothing for my anxiety after 8 weeks and the side effects were unbearable — severe nausea, dizziness, and constant headaches. I gained 12 pounds in two months and my insomnia got worse. The cost was ridiculous too, over $200 per month without insurance. I had to stop taking it and work with my doctor to find something else.",
+        "Mixed experience with this blood pressure medication. It does control my hypertension effectively and my numbers are now in a healthy range. However, the side effects are hard to deal with — persistent dry cough and some fatigue. The dosage schedule is manageable, once a day, but I had to try two different doses before finding the right one. Cost is reasonable since it has a generic version.",
+      ];
+
+      function loadExample(idx) {
+        const ta = document.getElementById("reviewInput");
+        ta.value = examples[idx];
+        updateCount(ta);
+        ta.focus();
+      }
+
+      function updateCount(ta) {
+        const n = ta.value.length;
+        document.getElementById("charCount").textContent =
+          n + " character" + (n !== 1 ? "s" : "");
+      }
+
+      document
+        .getElementById("mainForm")
+        .addEventListener("submit", function () {
+          const btn = document.getElementById("submitBtn");
+          btn.classList.add("loading");
+          document.getElementById("btnLoader").style.display = "block";
+          document.querySelector(".btn-text").textContent = "Analyzing…";
+        });
+    </script>
+  </body>
 </html>

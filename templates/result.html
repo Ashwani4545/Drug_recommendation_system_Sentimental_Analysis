@@ -1,47 +1,205 @@
-<html>
-<head>
-<meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/4.4.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DrugSense — Analysis Result</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
 
-
-
-<body>
-
-<div>
-    <nav class="navbar navbar-expand-sm bg-dark fixed-top">
-        <a class="navbar-brand" href="#"><b>Drug Review Sentiment Analysis</b></a>
+    <nav class="navbar">
+      <div class="nav-brand">
+        <span class="brand-dot"></span>
+        DrugSense
+      </div>
+      <a href="{{ url_for('home') }}" class="nav-back">← Analyze another</a>
     </nav>
-</div>
 
-<br><br><br>
-
-<div class="wrapper">
-    <div class="main-div main-div1">
-      <h1 align="center" style="background-color:black;color:white;">Drug Recommendation System based on Sentiment Analysis of Drug Reviews</h1>
-    </div><br><br><br>
-<br>
-<br>
-<br>
-
-</div>
-
-	<h1 style="color:white;font-size:20;text-align: center;"><b>Results for Comment</b></h1>
-	<div align="center" style= "background-color:white;padding:40px;">
-        	
-	{% if prediction == 1%}
-	<h2 style="color:blue;">Good Drug,Drug is Advisable at all condition </h2>
-	{% elif prediction == 0%}
-	<h2 style="color:red;">Bad Drug,Drug is not Advisable(Movie is bad)</h2>
-	{% endif %}
-
+    <main class="results-main">
+      <!-- ── Verdict card ── -->
+      <div
+        class="verdict-card {% if sentiment.label == 1 %}verdict-positive{% else %}verdict-negative{% endif %}"
+      >
+        <div class="verdict-left">
+          <div class="verdict-icon">
+            {{ '✅' if sentiment.label == 1 else '❌' }}
+          </div>
+          <div>
+            <div class="verdict-label">Overall Sentiment</div>
+            <div class="verdict-value">
+              {{ 'Positive — Drug Advisable' if sentiment.label == 1 else
+              'Negative — Drug Not Recommended' }}
+            </div>
+          </div>
         </div>
-	</div>
+        <div class="verdict-right">
+          <div class="conf-ring" data-pct="{{ sentiment.confidence }}">
+            <svg viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" class="ring-bg" />
+              <circle
+                cx="30"
+                cy="30"
+                r="24"
+                class="ring-fill {% if sentiment.label == 1 %}ring-pos{% else %}ring-neg{% endif %}"
+                style="stroke-dasharray: {{ (sentiment.confidence / 100 * 150.8)|round(1) }} 150.8; stroke-dashoffset: 37.7"
+              />
+            </svg>
+            <div class="ring-label">{{ sentiment.confidence }}%</div>
+          </div>
+          <div class="conf-text">Confidence</div>
+        </div>
+      </div>
 
-</body>
+      <!-- ── Probability bar ── -->
+      <div class="prob-bar-card card">
+        <div class="card-title">Sentiment Probability</div>
+        <div class="prob-row">
+          <span class="prob-neg-label"
+            >Negative {{ sentiment.probability_negative }}%</span
+          >
+          <div class="prob-track">
+            <div
+              class="prob-neg"
+              style="width: {{ sentiment.probability_negative }}%"
+            ></div>
+            <div
+              class="prob-pos"
+              style="width: {{ sentiment.probability_positive }}%"
+            ></div>
+          </div>
+          <span class="prob-pos-label"
+            >{{ sentiment.probability_positive }}% Positive</span
+          >
+        </div>
+      </div>
+
+      <!-- ── Two-column layout ── -->
+      <div class="two-col">
+        <!-- Aspect analysis -->
+        <div class="card aspect-card">
+          <div class="card-title">Aspect-Based Analysis</div>
+          <div class="card-sub">
+            Four medical dimensions scored independently
+          </div>
+          <div class="aspect-grid">
+            {% for aspect_key, aspect_val in aspects.items() %}
+            <div class="aspect-item aspect-{{ aspect_val.score }}">
+              <div class="aspect-icon">{{ aspect_val.icon }}</div>
+              <div class="aspect-name">
+                {{ aspect_key.replace('_', ' ').title() }}
+              </div>
+              <div class="aspect-score">{{ aspect_val.score.title() }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- XAI Explanation -->
+        <div class="card xai-card">
+          <div class="card-title">Why this prediction?</div>
+          <div class="card-sub">Key words driving the result</div>
+          <div class="xai-explanation">{{ explanation|safe }}</div>
+          <div class="xai-legend">
+            <span class="legend-pos">■ Positive signal</span>
+            <span class="legend-neg">■ Negative signal</span>
+          </div>
+          <div class="highlighted-review">{{ highlighted_review|safe }}</div>
+        </div>
+      </div>
+
+      <!-- ── Safety Warnings ── -->
+      {% if interactions %}
+      <div class="card warnings-card">
+        <div class="card-title">⚠️ Safety Warnings Detected</div>
+        {% for w in interactions %}
+        <div class="warning-item">{{ w }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- ── Drug Recommendations ── -->
+      {% if recommendations %}
+      <div class="card reco-card">
+        <div class="card-title">💊 Top Drug Recommendations</div>
+        <div class="card-sub">
+          Based on detected condition:
+          <strong>{{ condition.title() if condition else 'General' }}</strong>
+          · Ranked by patient satisfaction score
+        </div>
+        <div class="reco-grid">
+          {% for drug in recommendations %}
+          <div class="reco-item {% if loop.first %}reco-top{% endif %}">
+            {% if loop.first %}
+            <div class="reco-badge">Top Rated</div>
+            {% endif %} {% if drug.badge and not loop.first %}
+            <div class="reco-badge reco-badge-alt">{{ drug.badge }}</div>
+            {% endif %}
+            <div class="reco-name">{{ drug.name }}</div>
+            <div class="reco-meta">
+              <span class="reco-rating">★ {{ drug.rating }}/10</span>
+              <span class="reco-reviews">{{ drug.reviews }} reviews</span>
+            </div>
+            <div class="reco-bar-track">
+              <div
+                class="reco-bar-fill"
+                style="width: {{ (drug.rating / 10 * 100)|round }}%"
+              ></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <p class="reco-disclaimer">
+          ℹ️ Recommendations are based on aggregated patient review data. Always
+          consult a licensed healthcare provider before changing medication.
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- ── Original review ── -->
+      <div class="card review-orig-card">
+        <div class="card-title">Your Review</div>
+        <blockquote class="review-text">{{ review }}</blockquote>
+      </div>
+
+      <!-- ── Actions ── -->
+      <div class="actions">
+        <a href="{{ url_for('home') }}" class="submit-btn"
+          >Analyze Another Review</a
+        >
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>
+        DrugSense · For informational purposes only. Always consult a healthcare
+        professional.
+      </p>
+    </footer>
+
+    <script>
+      /* Animate bars on load */
+      document.addEventListener("DOMContentLoaded", () => {
+        document
+          .querySelectorAll(".reco-bar-fill, .prob-neg, .prob-pos")
+          .forEach((el) => {
+            const target = el.style.width;
+            el.style.width = "0%";
+            setTimeout(() => {
+              el.style.width = target;
+            }, 100);
+          });
+      });
+    </script>
+  </body>
 </html>
