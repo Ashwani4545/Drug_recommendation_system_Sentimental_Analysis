@@ -53,6 +53,7 @@ body {
   padding: 0 2rem;
   height: 60px;
   background: rgba(8,14,26,0.75);
+  -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--border);
 }
@@ -148,6 +149,7 @@ body {
   border: 1px solid var(--border2);
   border-radius: 20px;
   padding: 32px;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 .form-card-header {
@@ -291,8 +293,7 @@ textarea::placeholder { color: var(--text-dim); }
 }
 .conf-text { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.04em; }
 
-/* Probability bar */
-.prob-bar-card { }
+.prob-bar-card { display: block; }
 .prob-row { display: flex; align-items: center; gap: 12px; }
 .prob-neg-label, .prob-pos-label { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
 .prob-track {
