@@ -508,7 +508,97 @@ Contributions are welcome! Please follow these steps:
 > Please ensure your code follows PEP 8 style guidelines. For major changes, open an issue first to discuss the approach before writing code.
 
 ---
+# DrugSense — Enhanced Drug Recommendation System
 
+## What changed from the original
+
+### 🐛 Bug fixes
+| File | Original bug | Fix |
+|------|-------------|-----|
+| `app.py` | `tokenizer.fit_on_texts(data)` re-fitted tokenizer on test input, breaking vocabulary | Removed — use pre-fitted tokenizer only |
+| `app.py` | `model.predict_classes()` deprecated and removed in TF 2.6+ | Replaced with `np.argmax(model.predict())` |
+| `Drug_Review_Sentiment_Analysis.py` | `smote.fit_sample()` removed in imbalanced-learn 0.8+ | Fixed to `smote.fit_resample()` |
+| `Drug_Review_Sentiment_Analysis.py` | `get_feature_names()` deprecated | Updated to `get_feature_names_out()` |
+| `Procfile` | `gunicorn app:Drug-Review-Sentiment-Analysis-api` — wrong app name | Fixed to `gunicorn app:app` |
+| `runtime.txt` | `python 3.6` / `pythonm 3.8` — two conflicting entries | Single clean `python-3.10.12` |
+| `result.html` | Copy-paste artefact: "Movie is bad" in drug result | Fixed to correct medical language |
+
+### ✨ New features
+
+#### `app.py`
+- **Aspect-Based Sentiment Analysis (ABSA)** — reviews scored independently on 4 medical dimensions: *effectiveness*, *side effects*, *dosage*, *cost*
+- **Confidence score** — probability float from model exposed to UI (not just binary class)
+- **Condition detection** — keyword NLP maps reviews to 7 medical conditions (depression, anxiety, pain, diabetes, hypertension, acne, insomnia)
+- **Drug recommendations** — per-condition top-3 drugs with ratings, review counts, and badges
+- **XAI keyword highlighting** — positive/negative sentiment words wrapped in `<mark>` tags so users see model reasoning
+- **Drug interaction safety warnings** — rule-based flags for alcohol, warfarin, MAOIs, pregnancy, kidney conditions
+- **Plain-English explanation** — generated sentence describing why the model classified as it did
+- **REST API endpoint** — `POST /api/predict` accepts JSON `{"review": "..."}` and returns structured JSON response
+
+#### `Drug_Review_Sentiment_Analysis.py`
+- **3-class sentiment** — positive (≥7), neutral (5–6), negative (≤4) instead of binary
+- **Bidirectional LSTM** — upgraded from simple RNN; `GlobalMaxPooling1D` replaces flat LSTM
+- **EarlyStopping + ReduceLROnPlateau** callbacks prevent overfitting
+- **Training curves** saved as PNG files
+- **Confusion matrix heatmap** saved as PNG
+- **All artefacts saved** — tokenizer, label encoder, and best LR pipeline all pickled
+
+#### UI (complete redesign)
+- Dark medical aesthetic with teal accent and glassmorphism cards
+- Confidence ring chart, probability split bar, aspect grid
+- Drug recommendation cards with animated rating bars
+- Keyword-highlighted review for XAI
+- Example review loader buttons
+- Character counter on textarea
+- Fully responsive
+
+## Project structure
+```
+drug_enhanced/
+├── app.py                          # Flask app (enhanced)
+├── Drug_Review_Sentiment_Analysis.py   # Training script (enhanced)
+├── requirements.txt
+├── Procfile
+├── runtime.txt
+├── templates/
+│   ├── home.html                   # Input page (redesigned)
+│   └── result.html                 # Results page (redesigned)
+└── static/
+    └── css/
+        └── styles.css              # Full dark UI stylesheet
+```
+
+## Run locally
+```bash
+pip install -r requirements.txt
+# Place rnn_model.h5 and tokenizer.pickle in root directory
+python app.py
+```
+
+## API usage
+```bash
+curl -X POST http://localhost:5000/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{"review": "This medication worked great for my anxiety with minimal side effects"}'
+```
+
+Response:
+```json
+{
+  "sentiment": {"label": 1, "confidence": 91.3, "probability_positive": 91.3, "probability_negative": 8.7},
+  "aspects": {
+    "effectiveness": {"score": "positive", "icon": "✅"},
+    "side_effects": {"score": "positive", "icon": "✅"},
+    "dosage": {"score": "neutral", "icon": "➖"},
+    "cost": {"score": "neutral", "icon": "➖"}
+  },
+  "explanation": "The review was classified as positive with 91.3% confidence. Positive signals found in: effectiveness, side effects.",
+  "detected_condition": "anxiety",
+  "safety_warnings": []
+}
+```
+
+---
 ## 15. 📄 License
 
 This project is licensed under the **MIT License**.
