@@ -340,7 +340,7 @@ def clean_text(raw: str, remove_stopwords: bool = True, stem: bool = False) -> s
 ### Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/your-username/drug-review-sentiment-analysis.git
+git clone https://github.com/Ashwani4545/Drug-Review-Sentiment-Analysis.git
 cd drug-review-sentiment-analysis
 ```
 
