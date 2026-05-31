@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DrugSense — About</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+
+    <nav class="navbar">
+      <div class="nav-brand">
+        <span class="brand-dot"></span>
+        DrugSense
+      </div>
+      <div class="nav-pills">
+        <a class="nav-pill" href="{{ url_for('home') }}">Analyze</a>
+        <a class="nav-pill active" href="{{ url_for('about') }}">About</a>
+      </div>
+    </nav>
+
+    <main class="hero about-hero">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        About the project
+      </div>
+      <h1 class="hero-title">
+        Built to make drug reviews<br />
+        <em>clearer, safer, and easier</em>
+      </h1>
+      <p class="hero-sub">
+        DrugSense is a Flask web app for exploring patient drug reviews with
+        sentiment analysis, aspect scoring, keyword highlighting, and simple
+        condition-based recommendations.
+      </p>
+    </main>
+
+    <section class="how-section">
+      <h2 class="how-title">What this app does</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <h3>Analyzes review sentiment</h3>
+            <p>
+              Reviews are classified as positive or negative with a confidence
+              score, and the result is shown in a simple visual summary.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <h3>Breaks reviews into aspects</h3>
+            <p>
+              The app looks at effectiveness, side effects, dosage convenience,
+              and cost so the result is easier to interpret.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <h3>Surfaces drug suggestions</h3>
+            <p>
+              When the review mentions a condition, DrugSense can show commonly
+              reviewed medication alternatives for that area.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-body">
+            <h3>Highlights key words</h3>
+            <p>
+              Positive and negative words are highlighted so you can see why the
+              prediction leaned in a certain direction.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <div class="form-card">
+        <div class="form-card-header">
+          <span class="form-tag">Project notes</span>
+          <span class="form-hint">Informational use only</span>
+        </div>
+        <div class="card-sub" style="margin-bottom: 16px">
+          This project is intended for learning and demonstration. It should not
+          replace a medical professional’s advice.
+        </div>
+        <div class="examples" style="margin-top: 0">
+          <a class="ex-btn" href="{{ url_for('home') }}">Try the analyzer</a>
+          <a class="ex-btn" href="{{ url_for('home') }}#mainForm"
+            >Go to review input</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>
+        DrugSense · For informational purposes only. Always consult a healthcare
+        professional.
+      </p>
+    </footer>
+  </body>
+</html>
